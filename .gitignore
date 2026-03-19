@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# environment variables — never commit these
+client/.env
+client/.env.local
+server/.env
+server/.env.local
+
+# production build output
+client/dist/
+
+# vite cache
+client/.vite/
+
+# logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# editor folders
+.vscode/
+.idea/
