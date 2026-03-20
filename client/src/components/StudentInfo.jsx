@@ -116,7 +116,7 @@ const FieldRow = ({ field, onChange, onDelete }) => {
 }
 
 // ── STUDENT INFO PANEL ────────────────────────────────────
-const StudentInfo = ({ fields, onFieldsChange, watermark, onWatermarkToggle, onWatermarkUpload }) => {
+const StudentInfo = ({ fields, onFieldsChange }) => {
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -149,20 +149,15 @@ const StudentInfo = ({ fields, onFieldsChange, watermark, onWatermarkToggle, onW
     ])
   }
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    if (file) onWatermarkUpload(file)
-  }
-
   return (
-    <div className="px-5 py-4 flex flex-col gap-3 flex-shrink-0">
+    <div className="px-5 py-4 flex flex-col gap-3 h-full overflow-hidden">
 
       <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
         Student Details
       </p>
 
       {/* DRAGGABLE FIELD LIST */}
-      <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-2 -mr-2">
+      <div className="flex flex-col gap-2 flex-1 overflow-y-auto pr-2 -mr-2 min-h-0">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -187,47 +182,10 @@ const StudentInfo = ({ fields, onFieldsChange, watermark, onWatermarkToggle, onW
       {/* ADD FIELD BUTTON */}
       <button
         onClick={handleAdd}
-        className="w-full border border-dashed border-[#2d3148] hover:border-[#e11d48] text-slate-500 hover:text-[#e11d48] text-xs py-1.5 rounded-lg transition-colors"
+        className="w-full border border-dashed border-[#2d3148] hover:border-[#e11d48] text-slate-500 hover:text-[#e11d48] text-xs py-1.5 rounded-lg transition-colors flex-shrink-0"
       >
         + Add Field
       </button>
-
-      {/* WATERMARK TOGGLE */}
-      <div className="mt-1 flex items-center gap-2 group">
-        <input
-          type="checkbox"
-          id="watermark-toggle"
-          checked={watermark.enabled}
-          onChange={(e) => onWatermarkToggle(e.target.checked)}
-          className="peer sr-only"
-        />
-        <label htmlFor="watermark-toggle" className="cursor-pointer">
-          <img
-            src={watermark.enabled ? checkboxChecked : checkboxUnchecked}
-            alt="watermark toggle"
-            className="w-4 h-4 object-contain transition-transform group-hover:scale-110 pointer-events-none"
-          />
-        </label>
-        <label htmlFor="watermark-toggle" className="text-xs text-slate-400 cursor-pointer select-none group-hover:text-slate-300 transition-colors">
-          Add Watermark
-        </label>
-      </div>
-
-      {/* WATERMARK UPLOAD */}
-      {watermark.enabled && (
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-slate-400">Upload Image (PNG / JPG)</label>
-          <input
-            type="file"
-            accept="image/png, image/jpeg"
-            onChange={handleFileChange}
-            className="text-xs text-slate-400 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-[#2d3148] file:text-slate-300 file:cursor-pointer hover:file:bg-[#e11d48] hover:file:text-white transition-colors"
-          />
-          {watermark.filename && (
-            <p className="text-xs text-[#e11d48]">✓ {watermark.filename}</p>
-          )}
-        </div>
-      )}
 
     </div>
   )
