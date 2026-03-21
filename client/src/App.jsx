@@ -32,7 +32,7 @@ const DEFAULT_DOC_SETTINGS = {
     stringColor: '#e05c8a',
     commentColor: '#00b450',
     lineNumberColor: '#a0afc3',
-    operatorColor: '#ff8c00',    // orange for operators
+    operatorColor: '#ff91ec',    // pinkish for operators
     specifierColor: '#b400c8',   // purple for %d, \n
     functionColor: '#e6db74',    // yellow for functions
     numberColor: '#ae81ff',      // purple/blue for numbers

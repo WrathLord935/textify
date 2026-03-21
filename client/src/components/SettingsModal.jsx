@@ -105,7 +105,19 @@ const SettingsModal = ({ onClose, watermark, setWatermark, settings, setSettings
 
   const handleExportTheme = async () => {
     try {
-      const themeJson = JSON.stringify(settings.appearance, null, 2)
+      const fullTheme = {
+        keywordColor: settings.appearance.keywordColor || '#00b4c8',
+        stringColor: settings.appearance.stringColor || '#e05c8a',
+        commentColor: settings.appearance.commentColor || '#00b450',
+        lineNumberColor: settings.appearance.lineNumberColor || '#a0afc3',
+        operatorColor: settings.appearance.operatorColor || '#ff91ec',
+        specifierColor: settings.appearance.specifierColor || '#b400c8',
+        functionColor: settings.appearance.functionColor || '#e6db74',
+        numberColor: settings.appearance.numberColor || '#ae81ff',
+        directiveColor: settings.appearance.directiveColor || '#f92672',
+        headerColor: settings.appearance.headerColor || '#fd971f',
+      }
+      const themeJson = JSON.stringify(fullTheme, null, 2)
       await navigator.clipboard.writeText(themeJson)
       alert('Theme copied to clipboard as JSON!')
     } catch (err) {
@@ -120,7 +132,18 @@ const SettingsModal = ({ onClose, watermark, setWatermark, settings, setSettings
       const parsed = JSON.parse(input)
       if (typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid JSON format')
       
-      const newAppearance = { ...settings.appearance }
+      const newAppearance = {
+        keywordColor: settings.appearance.keywordColor || '#00b4c8',
+        stringColor: settings.appearance.stringColor || '#e05c8a',
+        commentColor: settings.appearance.commentColor || '#00b450',
+        lineNumberColor: settings.appearance.lineNumberColor || '#a0afc3',
+        operatorColor: settings.appearance.operatorColor || '#ff91ec',
+        specifierColor: settings.appearance.specifierColor || '#b400c8',
+        functionColor: settings.appearance.functionColor || '#e6db74',
+        numberColor: settings.appearance.numberColor || '#ae81ff',
+        directiveColor: settings.appearance.directiveColor || '#f92672',
+        headerColor: settings.appearance.headerColor || '#fd971f',
+      }
       let importedCount = 0
       
       for (const [key, val] of Object.entries(parsed)) {
@@ -211,7 +234,7 @@ const SettingsModal = ({ onClose, watermark, setWatermark, settings, setSettings
                     { label: 'Strings ("Hello")', key: 'stringColor', def: '#e05c8a' },
                     { label: 'Comments (// note)', key: 'commentColor', def: '#00b450' },
                     { label: 'Line Numbers', key: 'lineNumberColor', def: '#a0afc3' },
-                    { label: 'Operators (+, -, <, >)', key: 'operatorColor', def: '#ff8c00' },
+                    { label: 'Operators (+, -, <, >)', key: 'operatorColor', def: '#ff91ec' },
                     { label: 'Specifiers/Escapes (%d, \\n)', key: 'specifierColor', def: '#b400c8' },
                     { label: 'Functions (main, printf)', key: 'functionColor', def: '#e6db74' },
                     { label: 'Numbers (0-9)', key: 'numberColor', def: '#ae81ff' },
