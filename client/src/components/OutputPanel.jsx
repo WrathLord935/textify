@@ -52,6 +52,31 @@ const OutputPanel = ({ latex, onGenerate, hasWatermark, watermarkBase64, waterma
     URL.revokeObjectURL(url)
   }
 
+  // ── OVERLEAF INTEGRATION ─────────────────────────────────
+  const handleOverleaf = () => {
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = 'https://www.overleaf.com/docs'
+    form.target = '_blank'
+    form.style.display = 'none'
+
+    const snipInput = document.createElement('input')
+    snipInput.type = 'hidden'
+    snipInput.name = 'snip'
+    snipInput.value = latex
+
+    const nameInput = document.createElement('input')
+    nameInput.type = 'hidden'
+    nameInput.name = 'snip_name'
+    nameInput.value = 'main.tex'
+
+    form.appendChild(snipInput)
+    form.appendChild(nameInput)
+    document.body.appendChild(form)
+    form.submit()
+    document.body.removeChild(form)
+  }
+
   return (
     <div className="flex flex-col h-full">
 
@@ -83,6 +108,18 @@ const OutputPanel = ({ latex, onGenerate, hasWatermark, watermarkBase64, waterma
             className="bg-[#1a1d27] hover:bg-[#2d3148] text-slate-300 text-xs px-4 py-1.5 rounded-lg transition-colors border border-[#2d3148]"
           >
             {hasWatermark ? 'Download .zip' : 'Download .tex'}
+          </button>
+        )}
+
+        {/* OVERLEAF */}
+        {latex && (
+          <button
+            onClick={handleOverleaf}
+            className="flex items-center gap-1.5 bg-[#47A141] hover:bg-[#3d8b38] text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition-colors shadow-sm ml-2 md:ml-0"
+            title="Open project directly in Overleaf"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            Overleaf
           </button>
         )}
 

@@ -8,7 +8,10 @@ const defaultSettings = {
   margins: { top: '2.2', bottom: '2.0', left: '2.5', right: '2.5' }
 }
 
-const hexToLatex = (hex) => hex.replace('#', '').toUpperCase()
+const hexToLatex = (hex) => {
+  if (!hex || hex.length !== 7 || !hex.startsWith('#')) return '000000'
+  return hex.replace('#', '').toUpperCase()
+}
 
 // fields is an array of { id, label, value, showLabel }
 // watermarkBase64 is either null (no watermark) or a base64 image string

@@ -22,9 +22,12 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'No code provided' })
   }
 
+  const isWindows = os.platform() === 'win32'
+  const outFileName = isWindows ? 'main.exe' : 'main.out'
+
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'compile-'))
   const srcFile = path.join(tmpDir, 'main.c')
-  const outFile = path.join(tmpDir, 'main.exe')
+  const outFile = path.join(tmpDir, outFileName)
   const stdinFile = path.join(tmpDir, 'stdin.txt')
 
   console.log('[GCC] Created temporary directory:', tmpDir)
@@ -62,9 +65,16 @@ router.post('/', (req, res) => {
       const runCmd = `"${outFile}" < "${stdinFile}"`
       console.log('[GCC] Executing compiled program:', runCmd)
 
+      const execOptions = { timeout: 5000 }
+      if (isWindows) {
+        execOptions.shell = 'cmd.exe'
+      } else {
+        execOptions.shell = '/bin/sh'
+      }
+
       exec(
         runCmd,
-        { timeout: 5000, shell: 'cmd.exe' },
+        execOptions,
         (runErr, stdout, stderr) => {
           console.log('[GCC] Program execution finished.')
           
@@ -82,8 +92,31 @@ router.post('/', (req, res) => {
           }
           
           console.log('[GCC] SUCCESS: Returning execution stdout/stderr to frontend.')
+          
+          // ── HEURISTIC STDIN INTERLEAVING ──
+          // Standard child_process pipes do not "echo" user input back to stdout like a real TTY.
+          // Because standard C programs smash all printf prompts together into a single block
+          // when redirected through STDIN, we scan the stdout text for common prompt phrases
+          // and inject the user's exact inputs natively to exactly emulate an interactive session.
+          
+          let finalOutput = stdout || '';
+          if (stdin && stdin.trim() && finalOutput) {
+            const inputs = stdin.split(/\r?\n/);
+            let inputIdx = 0;
+            // Matches any standard string ending in :, =, ?, or >, padded with ~40 chars of context 
+            // containing explicit interaction keywords (Enter, Input, etc).
+            const promptRegex = /(?:Enter|Input|Choice|Value|Select|Type|Provide|Name|Date|Age|Number|ID|Code|Data|Element|Press).{0,40}[:=?>]\s*/gi;
+            
+            finalOutput = finalOutput.replace(promptRegex, (match) => {
+              if (inputIdx < inputs.length) {
+                return match + inputs[inputIdx++] + '\n';
+              }
+              return match;
+            });
+          }
+          
           console.log('[GCC] ==========================================\n')
-          return res.json({ output: stdout, stderr })
+          return res.json({ output: finalOutput, stderr })
         }
       )
     })

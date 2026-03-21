@@ -41,6 +41,41 @@ const NumberInput = ({ value, onChange, min, max, step = 1, suffix = '' }) => {
   )
 }
 
+const ColorPicker = ({ value, onChange, onReset }) => {
+  return (
+    <div className="flex items-center gap-2">
+      <button 
+        onClick={onReset}
+        className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-wider mr-1"
+        title="Restore Default"
+      >
+        Reset
+      </button>
+      <div className="flex items-center bg-[#1a1d27] border border-[#2d3148] rounded-lg overflow-hidden focus-within:border-[#e11d48] transition-colors h-10 w-[120px]">
+        <input 
+          type="color" 
+          value={(value && value.length === 7 && value.startsWith('#')) ? value : '#000000'}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-10 h-full p-0 flex-shrink-0 cursor-pointer bg-transparent border-none appearance-none outline-none"
+        />
+        <div className="w-[1px] h-5 bg-[#2d3148] flex-shrink-0"></div>
+        <input 
+          type="text"
+          value={value}
+          onChange={(e) => {
+            let val = e.target.value;
+            if (!val.startsWith('#')) val = '#' + val.replace(/#/g, '');
+            onChange(val);
+          }}
+          maxLength={7}
+          spellCheck={false}
+          className="w-full bg-transparent text-slate-300 text-xs px-2 outline-none font-mono uppercase tracking-wider"
+        />
+      </div>
+    </div>
+  )
+}
+
 const SettingsModal = ({ onClose, watermark, setWatermark, settings, setSettings }) => {
   const [activeTab, setActiveTab] = useState('Appearance')
 
@@ -66,6 +101,45 @@ const SettingsModal = ({ onClose, watermark, setWatermark, settings, setSettings
         [key]: value
       }
     }))
+  }
+
+  const handleExportTheme = async () => {
+    try {
+      const themeJson = JSON.stringify(settings.appearance, null, 2)
+      await navigator.clipboard.writeText(themeJson)
+      alert('Theme copied to clipboard as JSON!')
+    } catch (err) {
+      alert('Failed to copy theme. Please check your clipboard permissions.')
+    }
+  }
+
+  const handleImportTheme = () => {
+    const input = prompt('Paste your theme JSON object here (must contain hex strings):')
+    if (!input) return
+    try {
+      const parsed = JSON.parse(input)
+      if (typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid JSON format')
+      
+      const newAppearance = { ...settings.appearance }
+      let importedCount = 0
+      
+      for (const [key, val] of Object.entries(parsed)) {
+        if (typeof val === 'string' && /^#[0-9A-Fa-f]{6}$/i.test(val) && key in newAppearance) {
+          newAppearance[key] = val.toUpperCase()
+          importedCount++
+        }
+      }
+      
+      if (importedCount === 0) {
+        alert('No valid hex colors found matching the available appearance keys. Check your JSON formatting.')
+        return
+      }
+      
+      setSettings(prev => ({ ...prev, appearance: newAppearance }))
+      alert(`Successfully imported ${importedCount} color mapping(s)!`)
+    } catch (err) {
+      alert('Invalid theme format. Please paste a valid JSON object containing valid Hex codes.')
+    }
   }
 
   return (
@@ -113,7 +187,24 @@ const SettingsModal = ({ onClose, watermark, setWatermark, settings, setSettings
             
             {activeTab === 'Appearance' && (
               <div className="flex flex-col gap-4 max-w-2xl">
-                <p className="text-sm text-slate-400 mb-4">Customize the exact hex colors used for the generated LaTeX syntax highlighting.</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2 border-b border-[#1e2130] pb-4">
+                  <p className="text-sm text-slate-400">Customize the exact hex colors used for the generated LaTeX syntax highlighting.</p>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button 
+                      onClick={handleImportTheme}
+                      className="px-3 py-1.5 bg-[#1a1d27] hover:bg-[#2d3148] border border-[#2d3148] rounded shadow-sm text-xs font-medium text-slate-300 transition-colors"
+                    >
+                      Import JSON
+                    </button>
+                    <button 
+                      onClick={handleExportTheme}
+                      className="px-3 py-1.5 bg-[#1a1d27] hover:bg-[#2d3148] border border-[#2d3148] rounded shadow-sm text-xs font-medium text-slate-300 transition-colors flex items-center gap-1.5"
+                    >
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                      Copy JSON
+                    </button>
+                  </div>
+                </div>
                 
                 {[
                     { label: 'Keywords (int, void)', key: 'keywordColor', def: '#00b4c8' },
@@ -130,22 +221,12 @@ const SettingsModal = ({ onClose, watermark, setWatermark, settings, setSettings
                     <div key={key} className="flex items-center justify-between pb-4 border-b border-[#1e2130]">
                       <div>
                         <h4 className="text-slate-200 font-medium text-sm">{label}</h4>
-                        <div className="text-xs text-slate-500 font-mono mt-1">{settings.appearance[key] || def}</div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <button 
-                          onClick={() => updateSettings('appearance', key, def)}
-                          className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-wider"
-                        >
-                          Reset
-                        </button>
-                        <input 
-                          type="color" 
-                          value={settings.appearance[key] || def}
-                          onChange={(e) => updateSettings('appearance', key, e.target.value)}
-                          className="w-10 h-10 p-1 bg-[#1a1d27] border border-[#2d3148] rounded cursor-pointer"
-                        />
-                      </div>
+                      <ColorPicker 
+                        value={settings.appearance[key] || def}
+                        onChange={(val) => updateSettings('appearance', key, val)}
+                        onReset={() => updateSettings('appearance', key, def)}
+                      />
                     </div>
                   ))}
               </div>

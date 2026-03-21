@@ -6,6 +6,7 @@ import OutputPanel from './components/OutputPanel'
 import SettingsModal from './components/SettingsModal'
 import generateLatex from './utils/generateLatex'
 import logo from './img/logo.png'
+import loadingGif from './img/Simple-Dot-TeXify.gif'
 
 // default 3 fields shown on first load
 const DEFAULT_FIELDS = [
@@ -57,6 +58,26 @@ const DEFAULT_DOC_SETTINGS = {
 }
 
 const App = () => {
+
+  // ── LAUNCH SPLASH SCREEN ───────────────────────────────
+  const [loadingState, setLoadingState] = useState('active') // 'active' | 'fading' | 'done'
+
+  useEffect(() => {
+    if (loadingState === 'done') return
+
+    // Play GIF sequence for 3.5s to ensure the logo animation completes, then fade out smoothly
+    const fadeTimer = setTimeout(() => {
+      setLoadingState('fading')
+    }, 3500)
+    
+    // Fully unmount exactly 500ms after the fade triggers
+    const doneTimer = setTimeout(() => setLoadingState('done'), 4000)
+    
+    return () => {
+      clearTimeout(fadeTimer)
+      clearTimeout(doneTimer)
+    }
+  }, [loadingState])
 
   // ── STATE ──────────────────────────────────────────────
 
@@ -234,6 +255,17 @@ const App = () => {
 
   return (
     <>
+      {/* ── SPLASH SCREEN OVERLAY ── */}
+      {loadingState !== 'done' && (
+        <div className={`fixed inset-0 z-[100] flex items-center justify-center bg-[#18181B] transition-opacity duration-500 ease-in-out pointer-events-none ${loadingState === 'fading' ? 'opacity-0' : 'opacity-100'}`}>
+          <img 
+            src={loadingGif} 
+            alt="Loading TeXify..." 
+            className="w-full h-full max-w-2xl object-contain p-4 md:p-0"
+          />
+        </div>
+      )}
+
       {/* DOCUMENT SETTINGS MODAL */}
       {settingsOpen && (
         <SettingsModal 
